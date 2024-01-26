@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    tools {
+        maven "3.9.6"
+    }
+
+    stages {
+        // checkout de master, based on jenkins configuration
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        // builds the java project
+        stage('Build') {
+            steps {
+                sh "mvn -B -DskipTests clean install -P[profile]"
+            }
+        }
+
+        // runs the unit tests
+        stage('Tests') {
+            steps {
+                sh "mvn -B clean install -P[profile]"
+            }
+
+            post {
+                always {
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
